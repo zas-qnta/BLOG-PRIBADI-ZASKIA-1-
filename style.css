@@ -167,3 +167,25 @@ tr:hover {
     color: white;
     margin-top: 50px;
 }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: white;
+}
+
+th {
+    background-color: #0a9396; /* Ocean Mid */
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #94d2bd; /* Ocean Light */
+}
+
+tr:hover {
+    background-color: #f0f9ff; /* Efek air saat di-hover */
+}

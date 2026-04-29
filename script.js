@@ -35,9 +35,9 @@ greeting();
 // 6. Validasi Form & Event Listener
 const formIdentitas = document.querySelector(".perfect-form");
 
-formIdentitas.addEventListener("submit", (event) => {
+//formIdentitas.addEventListener("submit", (event) => {
     // Mencegah reload halaman
-    event.preventDefault();
+    //event.preventDefault();
 
     // Mengambil data dari input (DOM Manipulation)
     const namaInput = document.querySelector('input[type="text"]').value;
@@ -45,13 +45,11 @@ formIdentitas.addEventListener("submit", (event) => {
 
     // Logika Sederhana: Validasi Form
     if (namaInput === "" || emailInput === "") {
-        alert("Mohon isi semua data ya, Kia!");
+        alert("Data kamu berhasil dikirim. Terima kasih sudah mampir! ✨");
     } else {
-        // Template Literals & Alert
         alert(`Halo ${namaInput}! Data kamu berhasil dikirim. Terima kasih sudah mampir! ✨`);
-        formIdentitas.reset(); // Mengosongkan form kembali
-    }
-});
+        formIdentitas.reset(); 
+    };
 
 // 7. Perulangan (Loop) untuk mencetak keahlian di console
 console.log("Daftar Keahlian:");

@@ -1,3 +1,52 @@
+<?php
+
+session_start();
+
+
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "db_blog_zaskia";
+
+$conn = mysqli_connect($host, $user, $pass, $db);
+
+if (!$conn) {
+    die("Koneksi gagal: " . mysqli_connect_error());
+}
+
+
+$message = "";
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    
+    $nama   = mysqli_real_escape_string($conn, $_POST['nama']);
+    $email  = mysqli_real_escape_string($conn, $_POST['email']);
+    $alamat = mysqli_real_escape_string($conn, $_POST['alamat']);
+
+    
+    if (empty($nama) || empty($email) || empty($alamat)) {
+        $_SESSION['status'] = "error";
+        $_SESSION['pesan']  = "Mohon isi semua data ya, Kia!";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $_SESSION['status'] = "error";
+        $_SESSION['pesan']  = "Format email tidak valid!";
+    } else {
+        
+        $sql = "INSERT INTO kontak_masuk (nama, email, alamat) VALUES ('$nama', '$email', '$alamat')";
+        
+        if (mysqli_query($conn, $sql)) {
+            $_SESSION['status'] = "success";
+            $_SESSION['pesan']  = "Halo $nama! Data kamu berhasil disimpan ke database. ✨";
+        } else {
+            $_SESSION['status'] = "error";
+            $_SESSION['pesan']  = "Gagal menyimpan data: " . mysqli_error($conn);
+        }
+    }
+    
+    header("Location: index.php");
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -19,7 +68,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Poppins', sans-serif; background-color: var(--bg-soft); color: #222; scroll-behavior: smooth; }
 
-        /* Hero Section */
+       
         .hero {
             background: linear-gradient(135deg, var(--ocean-dark), var(--ocean-mid), var(--ocean-light));
             color: white; padding: 80px 20px; text-align: center;
@@ -34,7 +83,7 @@
 
         .hero h1 { font-size: 2.2rem; margin-bottom: 5px; }
 
-        /* Navbar */
+        
         .navbar {
             background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
             padding: 15px 0; position: sticky; top: 0; z-index: 100;
@@ -45,7 +94,7 @@
         .nav-link { text-decoration: none; color: var(--ocean-dark); font-weight: 600; cursor: pointer; transition: 0.3s; }
         .nav-link:hover { color: var(--coral); }
 
-        /* Main Content */
+        
         .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
         .card {
             background: var(--white); border-radius: 20px; padding: 30px;
@@ -55,13 +104,13 @@
 
         .card h2 { color: var(--ocean-dark); margin-bottom: 15px; font-size: 1.3rem; }
 
-        /* Tabel Keahlian */
+        
         .table-container { overflow-x: auto; margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; }
         th { background-color: var(--ocean-mid); color: white; padding: 12px; text-align: left; }
         td { padding: 12px; border-bottom: 1px solid #f1f1f1; }
 
-        /* Form Identitas Baru */
+        
         .perfect-form { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
         .perfect-form input, .perfect-form textarea {
             width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px;
@@ -75,7 +124,7 @@
         }
         .perfect-form button:hover { background: var(--ocean-mid); transform: translateY(-2px); }
 
-        /* MODAL CUSTOM (Pop-up Lucu) */
+        
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 95, 115, 0.4); backdrop-filter: blur(5px);
@@ -115,73 +164,105 @@
     </div>
 </header>
 
-<nav class="navbar">
-    <div class="nav-container">
-        <a href="#" class="nav-link">Beranda</a>
-        <a href="#keahlian" class="nav-link">Keahlian</a>
-        <a href="javascript:void(0)" class="nav-link" onclick="toggleModal()">Kontak</a>
-    </div>
-</nav>
+
+</head>
+<body>
 
 <main class="container">
+    <?php if (isset($_SESSION['pesan'])): ?>
+        <div class="alert alert-<?php echo $_SESSION['status']; ?>">
+            <?php 
+                echo $_SESSION['pesan']; 
+                unset($_SESSION['pesan']); 
+                unset($_SESSION['status']);
+            ?>
+        </div>
+    <?php endif; ?>
+
     <section class="card">
         <h2>Tentang Saya</h2>
-        <p>Halo! Saya <strong>Kia</strong>. Saya mahasiswa Teknik Informatika, saya kelas A saya berkuliah di Universitas Muhammadiyah Sukabumi. saya kelahiran tahun 2006.</p>
+        <p>Halo! Saya <strong>Kia</strong>. Mahasiswa fokus saya saat ini berkuliah di universitas muhammadiyah sukabumi prodi teknik informatika angkatan 2024.</p>
     </section>
 
-    <section class="card" id="keahlian">
-        <h2>Keahlian Utama</h2>
+    <section class="card">
+        <h2>Form Identitas (Simpan ke MySQL)</h2>
+        <form action="index.php" method="POST" class="perfect-form">
+            <input type="text" name="nama" placeholder="Masukkan Nama" required>
+            <input type="email" name="email" placeholder="Masukkan Email" required>
+            <textarea name="alamat" placeholder="Masukkan Alamat Lengkap" required></textarea>
+            <button type="submit">Kirim dan Simpan Data</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Data Tersimpan</h2>
         <div class="table-container">
-            <table>
+            <table border="1" width="100%">
                 <thead>
-                    <tr><th>Bidang</th><th>Skill</th><th>Level</th></tr>
+                    <tr>
+                        <th>Nama</th>
+                        <th>Email</th>
+                        <th>Waktu</th>
+                    </tr>
                 </thead>
                 <tbody>
-                    <tr><td>Programming</td><td>Python (Data Structure)</td><td>Menengah</td></tr>
-                    <tr><td>Statistik</td><td>RStudio & Regression</td><td>Menengah</td></tr>
-                    <tr><td>Web Design</td><td>HTML & CSS</td><td>Dasar</td></tr>
+                    <?php
+                    $result = mysqli_query($conn, "SELECT * FROM kontak_masuk ORDER BY waktu_kirim DESC LIMIT 5");
+                    while($row = mysqli_fetch_assoc($result)) {
+                        echo "<tr>
+                                <td>{$row['nama']}</td>
+                                <td>{$row['email']}</td>
+                                <td>{$row['waktu_kirim']}</td>
+                              </tr>";
+                    }
+                    ?>
                 </tbody>
             </table>
         </div>
     </section>
+    <section class="card" id="data-pengunjung">
+    <h2>Daftar Pengunjung Terkini</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>Alamat</th>
+                    <th>Waktu Submit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                
+                $sql = "SELECT * FROM kontak_masuk ORDER BY waktu_kirim DESC";
+                $result = mysqli_query($conn, $sql);
 
-    <section class="card">
-    <h2>Form Identitas</h2>
-    <form class="perfect-form" method="POST" action="index.php">
-        <input type="text" name="nama" placeholder="Masukkan Nama" required>
-        <input type="email" name="email" placeholder="Masukkan Email" required>
-        <textarea name="alamat" placeholder="Masukkan Alamat Lengkap" required></textarea>
-        <button type="submit">Kirim Data</button>
-    </form>
+                
+                if (mysqli_num_rows($result) > 0) {
+                    // 4. Perulangan untuk menampilkan setiap baris data
+                    while($row = mysqli_fetch_assoc($result)) {
+                        echo "<tr>";
+                        echo "<td>" . htmlspecialchars($row['nama']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['alamat']) . "</td>";
+                        echo "<td>" . $row['waktu_kirim'] . "</td>";
+                        echo "</tr>";
+                    }
+                } else {
+                    echo "<tr><td colspan='4' style='text-align:center;'>Belum ada data yang dikirim. Ayo jadi yang pertama, Kia! 🌊</td></tr>";
+                }
+                ?>
+            </tbody>
+        </table>
+    </div>
 </section>
 </main>
 
-<div class="modal-overlay" id="modalContact" onclick="toggleModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <h3>Halo Kia! 👋</h3>
-        <p style="margin-bottom: 20px; font-size: 0.9rem; color: #666;">Hubungi saya lewat sini ya:</p>
-        
-        <a href="https://wa.me/6289765xxxx" class="contact-item">
-            <span>📱</span> WhatsApp: 089765xxxx
-        </a>
-        
-        <a href="https://instagram.com/zaskiaqnita" class="contact-item">
-            <span>📸</span> Instagram: @zaskiaqnita
-        </a>
-
-        <button class="close-btn" onclick="toggleModal()">Tutup</button>
-    </div>
-</div>
-
 <footer>
-    <p>&copy; 2026 Zaskia Qanita Najiyah. Ocean Theme v2.0</p>
+    <p>&copy; 2026 Zaskia Qanita Najiyah. Integrated PHP & MySQL</p>
 </footer>
-<button onclick="alert('halo')"> tombol submit</button>"
 
-<script>
-        function toggleModal() {
-            const modal = document.getElementById('modalContact');
-            modal.classList.toggle('active');
-        }
-    </script> <script src="script.js"></script> </body>
+<script src="script.js"></script>
+</body>
 </html>
